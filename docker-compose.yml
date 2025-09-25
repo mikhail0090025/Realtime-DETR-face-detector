@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  frontend_service:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8000:8000"
+    restart: on-failure
+
+  model_service:
+    build:
+      context: .
+      dockerfile: model/Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8001:8001"
+    restart: on-failure

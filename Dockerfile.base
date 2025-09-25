@@ -1,0 +1,14 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y git curl wget libgomp1 libstdc++6 && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir numpy==1.26.0
+
+RUN pip install --upgrade pip && \
+    pip install --cache-dir=/root/.cache/pip -r requirements.txt

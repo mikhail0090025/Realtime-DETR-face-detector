@@ -1,0 +1,8 @@
+Build base image:
+docker build -f Dockerfile.base -t my-base-image:latest .
+
+Build and start other images:
+docker-compose build
+docker-compose up -d
+
+Open http://localhost:8000/home

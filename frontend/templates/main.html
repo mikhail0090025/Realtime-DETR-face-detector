@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Face Detection Stream</title>
+<style>
+  video, canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+</style>
+</head>
+<body>
+<video id="video" width="480" height="360" autoplay muted></video>
+<canvas id="canvas" width="480" height="360"></canvas>
+
+<script>
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Получаем доступ к вебке
+navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+  video.srcObject = stream;
+});
+
+// Функция для отправки кадра на сервер
+async function sendFrame() {
+  // Рисуем текущий кадр на временном canvas
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = 240;
+  tempCanvas.height = 240;
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCtx.drawImage(video, 0, 0, 240, 240);
+  
+  // Получаем изображение в формате blob
+  const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, "image/jpeg"));
+
+  // Создаём FormData и отправляем POST
+  const formData = new FormData();
+  formData.append("file", blob, "frame.jpg");
+
+  try {
+    const response = await fetch("http://localhost:8000/predict", {
+      method: "POST",
+      body: formData
+    });
+    const data = await response.json();
+    drawBoxes(data.boxes);
+  } catch (err) {
+    console.error("Ошибка запроса:", err);
+  }
+}
+
+// Функция для отрисовки рамок
+function drawBoxes(boxes) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 2;
+  boxes.forEach(box => {
+    const [x, y, w, h] = box;
+    // Пропорционально масштабируем до размера видео на фронтенде
+    ctx.strokeRect(x * canvas.width / 240, y * canvas.height / 240,
+                   w * canvas.width / 240, h * canvas.height / 240);
+  });
+}
+
+// Каждые 200 мс отправляем кадр
+setInterval(sendFrame, 200);
+</script>
+</body>
+</html>
