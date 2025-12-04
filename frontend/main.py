@@ -13,8 +13,6 @@ import numpy as np
 app = FastAPI()
 
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
-app.mount("/styles", StaticFiles(directory="templates/styles"), name="styles")
-app.mount("/js", StaticFiles(directory="templates/js"), name="js")
 
 templates = Jinja2Templates(directory="templates")
 
